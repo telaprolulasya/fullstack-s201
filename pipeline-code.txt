@@ -4,15 +4,16 @@ pipeline {
     tools {
         jdk 'JDK_HOME'
         maven 'MAVEN_HOME'
+        nodejs 'NODE_HOME'
     }
 
     environment {
-        TOMCAT_URL = 'http://localhost:8080/manager/text'
+        TOMCAT_URL = 'http://13.53.255.49:9090/manager/text'
         TOMCAT_USER = 'admin'
         TOMCAT_PASS = 'admin'
 
-        BACKEND_REPO = 'https://github.com/imasheshk/crud-be.git'
-        FRONTEND_REPO = 'https://github.com/imasheshk/crud-fe.git'
+        BACKEND_REPO = 'https://github.com/telaprolulasya/fullstack-s201/crud_back.git'
+        FRONTEND_REPO = 'https://github.com/telaprolulasya/fullstack-s201/crud_front.git'
 
         BACKEND_DIR = 'backend'
         FRONTEND_DIR = 'frontend'
@@ -35,10 +36,6 @@ pipeline {
 
         stage('Build React Frontend') {
             steps {
-                script {
-                    def nodeHome = tool name: 'NODE_HOME', type: 'jenkins.plugins.nodejs.tools.NodeJSInstallation'
-                    env.PATH = "${nodeHome}\\bin;${env.PATH}"
-                }
                 dir("${env.FRONTEND_DIR}") {
                     bat 'npm install'
                     bat 'npm run build'
@@ -53,7 +50,7 @@ pipeline {
                     bat "if exist ${warDir} rmdir /S /Q ${warDir}"
                     bat "mkdir ${warDir}\\META-INF"
                     bat "mkdir ${warDir}\\WEB-INF"
-                    bat "xcopy /E /Y /I \"${env.FRONTEND_DIR}\\dist\\*\" \"${warDir}\\\""
+                    bat "xcopy /E /Y /I \"${env.FRONTEND_DIR}\\build\\*\" \"${warDir}\\\""
                     bat "jar -cvf ${env.FRONTEND_WAR} -C ${warDir} ."
                 }
             }
@@ -62,8 +59,8 @@ pipeline {
         stage('Build Spring Boot App') {
             steps {
                 dir("${env.BACKEND_DIR}") {
-                    bat 'mvn clean package'
-                    bat 'rename target\\*.war springapp1.war'
+                    bat 'mvn clean package -DskipTests'
+                    bat 'copy target\\*.war springapp1.war'
                 }
             }
         }
@@ -81,3 +78,4 @@ pipeline {
         }
     }
 }
+
